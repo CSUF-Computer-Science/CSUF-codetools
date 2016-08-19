@@ -1,0 +1,73 @@
+#! /usr/bin/env python3
+# -*-Python-*-
+
+import os, subprocess, sys
+
+COMPILER = 'clang'
+MEGABYTE = 1024 * 1024
+MAX_SOURCE_FILE_SIZE = 1 * MEGABYTE
+
+def is_source_file(path):
+    if not os.path.isfile(path):
+        return False
+    
+    st = os.stat(path)
+    size = st.st_size
+    if size > MAX_SOURCE_FILE_SIZE:
+        return False
+
+    return True    
+
+# return True on success or False on failure
+def command(arg_list):
+    print(' '.join(arg_list))
+    return_code = subprocess.call(arg_list)
+    return (return_code == 0)
+
+# return True on success or False on failure
+def compile(source_path_list, library_name_list, output_path):
+    command([COMPILER] +
+            ['-g'] +
+            source_path_list +
+            ['-l' + lib for lib in library_name_list] +
+            ['-o'] + output_path)
+
+def build():
+    compile(['stats_test.cc'],
+            ['gtest'],
+            ['stats_test'])
+
+def test():
+    if build():
+        subprocess.call(['./stats_test'])
+
+def print_usage():
+    print('Usage:\n' +
+          '\n' +
+          '    critic <COMMAND>\n' +
+          '\n' +
+          'Commands:\n' +
+          '\n' +
+          '    build     compile and link\n'
+          '    help      print this usage information\n'
+          '    test      compile, then run unit tests\n')
+
+def usage_error():
+    print_usage()
+    sys.exit(1)
+    
+def main():
+    if len(sys.argv) != 2:
+        usage_error()
+    command = sys.argv[1]
+    if command == 'build':
+        build()
+    elif command == 'help':
+        print_usage()
+    elif command == 'test':
+        test()
+    else:
+        usage_error()
+
+if __name__ == '__main__':
+    main()
