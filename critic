@@ -3,7 +3,7 @@
 
 import os, subprocess, sys
 
-COMPILER = 'clang'
+COMPILER = 'clang++'
 MEGABYTE = 1024 * 1024
 MAX_SOURCE_FILE_SIZE = 1 * MEGABYTE
 
@@ -26,20 +26,19 @@ def command(arg_list):
 
 # return True on success or False on failure
 def compile(source_path_list, library_name_list, output_path):
-    command([COMPILER] +
-            ['-g'] +
-            source_path_list +
-            ['-l' + lib for lib in library_name_list] +
-            ['-o'] + output_path)
+    return command([COMPILER] +
+                   ['-g', '-std=c++11'] +
+                   source_path_list +
+                   ['-l' + lib for lib in library_name_list] +
+                   ['-o'] + output_path)
 
 def build():
-    compile(['stats_test.cc'],
-            ['gtest'],
-            ['stats_test'])
+    return compile(['stats_test.cc'],
+                   [],
+                   ['stats_test'])
 
 def test():
-    if build():
-        subprocess.call(['./stats_test'])
+    return build() and command(['./stats_test'])
 
 def print_usage():
     print('Usage:\n' +
