@@ -1,34 +1,47 @@
 
-#include "gtest/gtest.h"
+#define CATCH_CONFIG_MAIN
+#include "catch.hpp"
 
 #include "stats.hh"
 
 using namespace std;
 
-TEST(UndefinedException, Correctness) {
-  UndefinedException ex;
-}
-
-class StatsTest : public testing::Test {
-protected:
-  vector<double> empty, seven, increasing, decreasing;
-
-  void SetUp() {
-    seven.push_back(7);
-    for (int i = 0; i < 10; ++i) {
-      increasing.push_back(i);
-    }
-    decreasing.assign(increasing.rbegin(), increasing.rend());
+TEST_CASE("stats functions", "[stats]") {
+  vector<int> empty, seven, increasing, decreasing;
+  seven.push_back(7);
+  for (int i = 0; i < 10; ++i) {
+    increasing.push_back(i);
   }
-};
+  decreasing.assign(increasing.rbegin(), increasing.rend());
 
-TEST_F(StatsTest, DefinedMin) {
-  EXPECT_EQ(7, stats_min(seven));
-  EXPECT_EQ(0, stats_min(increasing));
-  EXPECT_EQ(0, stats_min(decreasing));
-}
+  REQUIRE( seven.size() == 1);
+  REQUIRE( seven[0] == 7 );
+  REQUIRE( increasing.size() == 10 );
+  REQUIRE( decreasing.size() == 10 );
+  for (int i = 0; i < 10; ++i) {
+    REQUIRE( increasing[i] == i );
+    REQUIRE( increasing[i] == decreasing[9 - i] );
+  }
 
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+  SECTION("undefined min") {
+    bool thrown(false);
+    try {
+      stats_min(empty);
+    } catch (UndefinedException e) {
+      thrown = true;
+    }
+    REQUIRE( thrown == true );
+  }
+
+  SECTION("defined min") {
+    REQUIRE( stats_min(seven) == 7 );
+    REQUIRE( stats_min(increasing) == 0 );
+    REQUIRE( stats_min(decreasing) == 0 );
+  }
+
+  SECTION("defined max") {
+    REQUIRE( stats_min(seven) == 7 );
+    REQUIRE( stats_min(increasing) == 0 );
+    REQUIRE( stats_min(decreasing) == 0 );
+  }
 }
