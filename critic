@@ -3,6 +3,13 @@
 
 import os, subprocess, sys
 
+HAVE_GITHUB = False
+try:
+    import github
+    HAVE_GITHUB = True
+except ImportError:
+    pass
+
 COMPILER = 'clang++'
 MEGABYTE = 1024 * 1024
 MAX_SOURCE_FILE_SIZE = 1 * MEGABYTE
@@ -24,6 +31,43 @@ def command(arg_list):
     return_code = subprocess.call(arg_list)
     return (return_code == 0)
 
+# return a list of lines printed to stdout on success, or None on error
+def command_lines(arg_list):
+    print(' '.join(arg_list))
+    p = subprocess.Popen(arg_list,
+                         stdout=subprocess.PIPE,
+                         universal_newlines=True,
+                         close_fds=True)
+    stdout_str, stderr_str = p.communicate()
+    if p.returncode != 0:
+        return None
+    else:
+        return stdout_str.splitlines()                         
+
+class Student:
+    def __init__(self, name, emails):
+        self.name = name
+        self.emails = emails
+
+def find_team_members():
+    if not HAVE_GITHUB:
+        return []
+    else:
+        origin = command_lines(['git', 'config', '--get', 'remote.origin.url'])[0]
+        origin = 'https://github.com/CSUF-Computer-Science/fall-2016-131-project-1b-ben-s-team'
+        print(origin)
+        gh = github.Github()
+        repo = gh.get_repo(origin)
+        result = []
+        for team in repo.get_teams():
+            print(team.name)
+            '''
+            for user in repo.get_members():
+                stu = Student(user.name, user.email)
+                result.append(stu)
+            '''
+        return result
+
 # return True on success or False on failure
 def compile(source_path_list, library_name_list, output_path):
     return command([COMPILER] +
@@ -40,6 +84,12 @@ def build():
 def test():
     return build() and command(['./stats_test'])
 
+def team():
+    if not HAVE_GITHUB:
+        print('error: PyGithub not installed')
+    else:
+        members = find_team_members()
+
 def print_usage():
     print('Usage:\n' +
           '\n' +
@@ -49,6 +99,7 @@ def print_usage():
           '\n' +
           '    build     compile and link\n'
           '    help      print this usage information\n'
+          '    team      print team members\n'
           '    test      compile, then run unit tests\n')
 
 def usage_error():
@@ -63,6 +114,8 @@ def main():
         build()
     elif command == 'help':
         print_usage()
+    elif command == 'team':
+        team()
     elif command == 'test':
         test()
     else:
