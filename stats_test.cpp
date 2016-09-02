@@ -3,7 +3,7 @@
 
 #include "catch.hpp"
 
-#include "stats.hh"
+#include "stats.hpp"
 
 using namespace std;
 
