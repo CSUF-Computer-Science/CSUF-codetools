@@ -14,6 +14,9 @@ COMPILER = 'clang++'
 MEGABYTE = 1024 * 1024
 MAX_SOURCE_FILE_SIZE = 1 * MEGABYTE
 
+def print_divider():
+    print('-' * 79)
+
 def is_source_file(path):
     if not os.path.isfile(path):
         return False
@@ -44,29 +47,21 @@ def command_lines(arg_list):
     else:
         return stdout_str.splitlines()                         
 
-class Student:
+class Contributor:
     def __init__(self, name, emails):
         self.name = name
         self.emails = emails
 
-def find_team_members():
-    if not HAVE_GITHUB:
-        return []
-    else:
-        origin = command_lines(['git', 'config', '--get', 'remote.origin.url'])[0]
-        origin = 'https://github.com/CSUF-Computer-Science/fall-2016-131-project-1b-ben-s-team'
-        print(origin)
-        gh = github.Github()
-        repo = gh.get_repo(origin)
-        result = []
-        for team in repo.get_teams():
-            print(team.name)
-            '''
-            for user in repo.get_members():
-                stu = Student(user.name, user.email)
-                result.append(stu)
-            '''
-        return result
+def find_contributors():
+    lines = command_lines(['git', 'shortlog', '-s', '-e'])
+    result = []
+    for line in lines:
+        name_and_email = line[7:]
+        name_part, email_part = name_and_email.split('<')
+        name = name_part.strip()
+        email = email_part.lstrip('<').rstrip('>')
+        result.append(Contributor(name, [email]))
+    return result
 
 # return True on success or False on failure
 def compile(source_path_list, library_name_list, output_path):
@@ -85,10 +80,16 @@ def test():
     return build() and command(['./stats_test'])
 
 def team():
-    if not HAVE_GITHUB:
-        print('error: PyGithub not installed')
-    else:
-        members = find_team_members()
+    contribs = find_contributors()
+    print('The following git users have contributed to this repository:')
+    print_divider()
+    for contrib in contribs:
+        print('"' + contrib.name + '"', end="")
+        for email in contrib.emails:
+            print(' <' + email + '>', end="")
+        print('')
+    print_divider()
+    print('')
 
 def print_usage():
     print('Usage:\n' +
