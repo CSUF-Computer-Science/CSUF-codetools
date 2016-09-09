@@ -112,15 +112,20 @@ def main():
         usage_error()
     command = sys.argv[1]
     if command == 'build':
-        build()
+        success = build()
     elif command == 'help':
         print_usage()
+        success = True
     elif command == 'team':
         team()
+        success = True
     elif command == 'test':
-        test()
+        success = test()
     else:
         usage_error()
+        success = False
+    if not success:
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
